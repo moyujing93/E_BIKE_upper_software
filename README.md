@@ -1,2 +1,6 @@
 # E_BIKE_upper_software
 标准自行车改电助力套件 ,bike to ebike KIT
+电助力上位机软件部分
+使用STM32F103RET6单片机，采用freertos系统和LVGL的图形化GUI
+通讯有SPI,RS485，iic
+上位机通过RS485发送转速电流控制电机驱动板，也可读取驱动板的温度电流电压转速等信息
