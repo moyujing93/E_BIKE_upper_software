@@ -35,7 +35,7 @@ int main(void)
     HAL_Init();                                 /* 初始化HAL库 */
     sys_stm32_clock_init(RCC_PLL_MUL9);         /* 设置时钟,72M */
     delay_init(72);                             /* 初始化延时函数 */
-    delay_ms(500);                              /* 给所有传感器一个准备时间 */
+    delay_ms(1000);                              /* 给所有传感器一个准备时间 */
     
     rs485_init(115200);
     adc1_dma_init();
