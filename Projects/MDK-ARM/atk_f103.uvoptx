@@ -2925,7 +2925,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\..\..\..\6.24\E_BIKE(FreeRTOS+LVGL)_RET6\Middlewares\LVGL\GUI_APP\GUI_FONT_IMG\bl_0.c</PathWithFileName>
+      <PathWithFileName>..\..\Middlewares\LVGL\GUI_APP\GUI_FONT_IMG\bl_0.c</PathWithFileName>
       <FilenameWithoutPath>bl_0.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>

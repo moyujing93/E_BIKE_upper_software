@@ -136,7 +136,7 @@ void start_task(void *pvParameters)
                 (const char*    )"task_lcd",
                 (uint16_t       )1024,
                 (void*          )NULL,
-                (UBaseType_t    )6,
+                (UBaseType_t    )8,
                 (TaskHandle_t*  )&task_lcd_Handler);
                 
     xTaskCreate((TaskFunction_t )task_data_disp,

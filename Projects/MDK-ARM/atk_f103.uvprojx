@@ -1521,7 +1521,7 @@
             <File>
               <FileName>bl_0.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\6.24\E_BIKE(FreeRTOS+LVGL)_RET6\Middlewares\LVGL\GUI_APP\GUI_FONT_IMG\bl_0.c</FilePath>
+              <FilePath>..\..\Middlewares\LVGL\GUI_APP\GUI_FONT_IMG\bl_0.c</FilePath>
             </File>
             <File>
               <FileName>bl_1.c</FileName>
