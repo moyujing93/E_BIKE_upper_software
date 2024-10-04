@@ -33,15 +33,19 @@
 /* RS485 命令 参考modbus报文形式，数据长度固定两个字节*/
 typedef struct
 {
-    uint8_t      slave;        /* 从机地址 */
-    uint8_t      command;      /* 读写命令 */
-    uint16_t      w_rpm;       /* 写转速 */
-    uint16_t      w_current;   /* 写电流 */
-    uint16_t      r_rpm;       /* 读转速 */
-    uint16_t      r_current;   /* 读电流 */
-    uint16_t      r_vbus;      /* 读电压 */
-    uint16_t      r_temper;    /* 读温度 */
-    uint16_t      crc;         /* crc校验位 */
+    uint8_t       FH;           /* 帧头 固定 0x7B */
+    uint8_t       slave;        /* 从机地址 */
+    uint8_t       command;      /* 读写命令 */
+    uint8_t       null_1;       /* 填结构体空缺 */
+    uint16_t      w_rpm;        /* 写转速 */
+    uint16_t      w_current;    /* 写电流 */
+    uint16_t      r_rpm;        /* 读转速 */
+    uint16_t      r_current;    /* 读电流 */
+    uint16_t      r_vbus;       /* 读电压 */
+    uint16_t      r_temper;     /* 读温度 */
+    uint16_t      crc;          /* crc校验位 */
+    uint8_t       null_2;       /* 填结构体空缺 */
+    uint8_t       FB;           /* 帧尾 固定 0x7D */
 }rs485_typedef;
 
 

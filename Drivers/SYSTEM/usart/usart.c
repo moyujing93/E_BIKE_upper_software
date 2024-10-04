@@ -84,6 +84,11 @@ int fputc(int ch, FILE *f)
 
 #if USART_EN_RX /*如果使能了接收*/
 
+volatile uint8_t rs485_sta = 0;
+volatile uint8_t rs485_num = 0;
+volatile rs485_typedef rs485_struct;
+
+
 /* 接收缓冲, 最大USART_REC_LEN个字节. */
 volatile uint8_t g_usart_rx_buf[USART_REC_LEN];
 
@@ -168,44 +173,26 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART_UX)                    /* 如果是串口1 */
     {
-        if ((g_usart_rx_sta & 0x80) == 0)             /* 接收未完成 */
+        if (rs485_sta == 0 && (g_rx_buffer[0] == 0x7B || rs485_num != 0))   //RS485数据
         {
-            if (g_usart_rx_sta == 0x08)                /* 接收到了0x0d（即回车键） */
+            g_usart_rx_buf[rs485_num] = g_rx_buffer[0];
+            rs485_num++;
+            if(rs485_num == sizeof(rs485_typedef))
             {
-                if (g_rx_buffer[0] != 0x0a)             /* 接收到的不是0x0a（即不是换行键） */
+                if(g_rx_buffer[0] == 0x7D)
                 {
-                    /* 接收数据错误,重新开始接收 */
-                    g_usart_rx_num = 0;
-                    g_usart_rx_sta = 0;
-                }
-                else                                    /* 接收到的是0x0a（即换行键） */
+                    //只负责接收数据，验证其他任务里
+                    rs485_struct = *(rs485_typedef*)g_usart_rx_buf;
+                    rs485_sta = 1;
+                    rs485_num = 0;
+                }else
                 {
-                    g_usart_rx_sta = 0x80;           /* 接收完成了 */
-                }
-            }
-            else                                        /* 还没收到0X0d（即回车键） */
-            {
-                if ( g_rx_buffer[0] == 0x0d )
-                {
-                    if( g_usart_rx_num > 0 )
-                    {
-                        g_usart_rx_sta = 0x08;
-                    }
-                }
-                else
-                {
-                    g_usart_rx_buf[g_usart_rx_num] = g_rx_buffer[0];
-                    g_usart_rx_num++;
-
-                    if (g_usart_rx_num > (USART_REC_LEN - 1)) /* 超出了缓冲最大长度 */
-                    {
-                        /* 接收数据错误,重新开始接收 */
-                        g_usart_rx_num = 0;
-                        g_usart_rx_sta = 0;
-                    }
+                    rs485_sta = 0;
+                    rs485_num = 0;
                 }
             }
         }
+        
     }
 }
 
@@ -229,38 +216,7 @@ void USART_UX_IRQHandler(void)
     HAL_UART_Receive_IT(&g_uart1_handle, (uint8_t *)g_rx_buffer, RXBUFFERSIZE);
 }
 
-/**
- * @brief       返回接收到的数据
- * @param       你的缓冲区首地址
- * @param       你的缓冲区大小
- * @retval      返回本次接受到的字节数,为0则是接受数据失败
- */
-uint8_t usart_receive_data(uint8_t *buf, uint16_t buf_size)
-{
-    uint8_t sta;
-    if(g_usart_rx_sta == 0x80)
-    {
-        if(buf_size < g_usart_rx_num)
-        {
-            return 0;
-        }else
-        {
-            uint16_t i;
-            for(i=0;i<g_usart_rx_num;i++)
-            {
-                buf[i] = g_usart_rx_buf[i];           /*  复制数据  */
-            }
-            sta = g_usart_rx_num;
-            g_usart_rx_sta = 0;                       /* 接受状态清零 */
-            g_usart_rx_num = 0;                       /* 接受计数清零 */
-        }
-    }else
-    {
-        return 0;
-    }
-    
-    return sta;
-}
+
 /**
  * @brief       发送len个字节(需要自己加上结束符\n)
  * @param       buf     : 发送区首地址

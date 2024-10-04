@@ -27,6 +27,7 @@
 
 #include "stdio.h"
 #include "./SYSTEM/sys/sys.h"
+#include "./BSP/rs485.h"
 
 
 /******************************************************************************************/
@@ -55,9 +56,12 @@
 
 //extern UART_HandleTypeDef g_uart1_handle;       /* HAL UART句柄 */
 
+extern volatile uint8_t rs485_sta;
+extern volatile uint8_t rs485_num;
+extern volatile rs485_typedef rs485_struct;
+
 void usart_init(uint32_t bound);                /* 串口初始化函数 */
 void usart_send_data(uint8_t *buf, uint8_t len);
-uint8_t usart_receive_data(uint8_t *buf, uint16_t buf_size);
 
 #endif
 

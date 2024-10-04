@@ -28,11 +28,6 @@
 #include "./SYSTEM/delay/delay.h"
 #include "./SYSTEM/usart/usart.h"
 
-/******************************************************************************************/
-
-uint8_t  receive_data[USART_REC_LEN];
-/******************************************************************************************/
-
 /**
  * @brief       RS485初始化函数
  *   @note      该函数主要是初始化串口
@@ -94,20 +89,7 @@ void rs485_send_data(uint8_t *buf, uint8_t len)
     taskENTER_CRITICAL();           /* 进入临界区 */
     RS485_RE(1);                                        /* 进入发送模式 */
     usart_send_data(buf,len);
-    usart_send_data((uint8_t*)"\r\n",sizeof"\r\n");
     RS485_RE(0);                                        /* 进入接收模式 */
     taskEXIT_CRITICAL();            /* 退出临界区 */
 }
 
-/**
- * @brief       接收到的数据
- * @param       buf     : 接收缓冲区首地址
- * @retval      返回接受到的字节数,为0则是接受数据失败
- */
-uint8_t rs485_receive_data(uint8_t *buf, uint16_t buf_size)
-{
-    uint8_t sta = 0;
-    sta = usart_receive_data(buf,buf_size);
-    return sta;
-
-}

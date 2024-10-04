@@ -30,7 +30,6 @@ EBIKE_TYPEDEF  ebike_rs485 = { 0 };
 lvgl_set_typedef rs485_control;
 uint16_t motor_rpm = 0;
 uint16_t motor_cun = 0;
-rs485_typedef  read_data = {0};
 rs485_typedef  write_data = {0};
 
 
@@ -91,7 +90,6 @@ void task_out_rs485(void *pvParameters)
     uint32_t lastWakeTime = xTaskGetTickCount();
     while(1)
     {
-        
         /*   放入全局变量中   */
         xSemaphoreTake(MutexSemaphore_my_ebike,portMAX_DELAY);
         ebike_rs485 = my_ebike;
@@ -107,40 +105,43 @@ void task_out_rs485(void *pvParameters)
 //        xSemaphoreTake(MutexSemaphore_rs485,portMAX_DELAY);
         
         /* 发出读请求 */
-        memset(&read_data, 0x00, sizeof(rs485_typedef));
-        read_data.slave = slave_bldc;
-        read_data.command = command_read;
-        read_data.crc = 0;
-        read_data.crc = ModbusCRC16_Check((uint8_t*)&read_data,sizeof(rs485_typedef));
+        memset(&write_data, 0x00, sizeof(rs485_typedef));
+        write_data.FH = 0x7B;
+        write_data.slave = slave_bldc;
+        write_data.command = command_read;
+        write_data.FB = 0x7D;
+        write_data.crc = ModbusCRC16_Check((uint8_t*)&write_data,sizeof(rs485_typedef));
         /* RS485发射 */
-        rs485_send_data((uint8_t*)&read_data,sizeof(rs485_typedef));
+        rs485_send_data((uint8_t*)&write_data,sizeof(rs485_typedef));
         /* 等待回复消息 */
         while(1)
         {
-            if(rs485_receive_data((uint8_t*)&read_data,sizeof(rs485_typedef)) != 0)    /* 有从机响应 */
+            if(rs485_sta != 0)    /* 有从机响应 */
             {
-                CCR_temp  =  read_data.crc;
-                read_data.crc = 0;
-                read_data.crc = ModbusCRC16_Check((uint8_t*)&read_data,sizeof(read_data));
-                if(CCR_temp == read_data.crc  && read_data.slave == slave_bldc)        /* 从机正确回复 */
+                CCR_temp  =  rs485_struct.crc;
+                rs485_struct.crc = 0;
+                rs485_struct.crc = ModbusCRC16_Check((uint8_t*)&rs485_struct,sizeof(rs485_typedef));
+                if(rs485_struct.slave == slave_bldc && CCR_temp == rs485_struct.crc)        /* 从机正确回复 */
                 {
-                    ebike_rs485.get_motor_rpm  =  read_data.r_rpm;
-                    ebike_rs485.get_motor_cun  =  read_data.r_current;
-                    ebike_rs485.voltage = ebike_rs485.voltage * 0.95 + read_data.r_vbus * 0.05;
-                    ebike_rs485.hot = read_data.r_temper;
+                    ebike_rs485.get_motor_rpm  =  rs485_struct.r_rpm;
+                    ebike_rs485.get_motor_cun  =  rs485_struct.r_current;
+                    ebike_rs485.voltage = ebike_rs485.voltage * 0.95 + rs485_struct.r_vbus * 0.05;
+                    ebike_rs485.hot = rs485_struct.r_temper;
                     //清除错误计数
                     ebike_rs485.rs485_error = 0;
                 }
                 
+                rs485_sta = 0;
                 break;
             }else
             {
-                vTaskDelay(5);
+                vTaskDelay(1);
                 time++;
-                if(time >= 6)
+                if(time >= 10)
                 {
+                    time = 0;
                     //累加错误计数
-                    ebike_rs485.rs485_error ++;
+                    ebike_rs485.rs485_error++;
                     if(ebike_rs485.rs485_error > 1000) ebike_rs485.rs485_error = 1000;
                     break;
                 }
@@ -150,11 +151,12 @@ void task_out_rs485(void *pvParameters)
         vTaskDelay(10);
         /* 发出写请求 */
         memset(&write_data, 0x00, sizeof(rs485_typedef));
+        write_data.FH = 0x7B;
         write_data.slave = slave_bldc;
         write_data.command = command_write;
         write_data.w_rpm  =  motor_rpm;
         write_data.w_current  = motor_cun;
-        write_data.crc = 0;
+        write_data.FB = 0x7D;
         write_data.crc = ModbusCRC16_Check((uint8_t*)&write_data,sizeof(rs485_typedef));
         /* RS485发射 */
         rs485_send_data((uint8_t*)&write_data,sizeof(rs485_typedef));
